@@ -35,6 +35,7 @@ public class wxServlet extends HttpServlet {
     }
 
 	/**
+	 * 验证是否能接入接口
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -52,10 +53,14 @@ public class wxServlet extends HttpServlet {
 	}
 
 	/**
+	 * 微信接收发送信息用post
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		PrintWriter out = response.getWriter();
+		
+		request.setCharacterEncoding("UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		PrintWriter out = response.getWriter();//获取out要在设置编码之后，不然也会中文乱码
 		try {
 			Map map = MessageUtil.xmlToMap(request);
 			String ToUserName= (String) map.get("ToUserName");
@@ -65,15 +70,22 @@ public class wxServlet extends HttpServlet {
 			String Content= (String) map.get("Content");
 			String MsgId= (String) map.get("MsgId");
 			String message = null;
-			if(MsgType.equals("text")){
-				TextMessage text = new TextMessage();
-				text.setToUserName(FromUserName);
-				text.setFromUserName(ToUserName);
-				text.setCreateTime(new Date().toString());
-				text.setMsgType("text");
-				text.setContent("你发送的是："+Content);
-				message=MessageUtil.textMessageToXml(text);
+			if(MsgType.equals(MessageUtil.MESSAGE_TEXT)){
+				if(Content.equals("1")){
+					message = MessageUtil.initText(FromUserName, ToUserName, MessageUtil.firstText());
+				}else if(Content.equals("2")){
+					message = MessageUtil.initText(FromUserName, ToUserName, MessageUtil.secondText());
+				}else if(Content.equals("?") || Content.equals("？") ){
+					message = MessageUtil.initText(FromUserName, ToUserName, MessageUtil.menuText());
+				}
+				
+			}else if(MsgType.equals(MessageUtil.MESSAGE_EVENT)){
+				String eventType = (String) map.get("Event");
+				if(eventType.equals(MessageUtil.MESSAGE_SUBSCRIBE)){//关注时
+					message = MessageUtil.initText(FromUserName, ToUserName, MessageUtil.menuText());
+				}
 			}
+			System.out.println(message);
 			out.print(message);
 		} catch (DocumentException e) {
 			e.printStackTrace();

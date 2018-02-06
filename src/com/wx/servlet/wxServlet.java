@@ -77,6 +77,8 @@ public class wxServlet extends HttpServlet {
 					message = MessageUtil.initText(FromUserName, ToUserName, MessageUtil.secondText());
 				}else if(Content.equals("?") || Content.equals("£¿") ){
 					message = MessageUtil.initText(FromUserName, ToUserName, MessageUtil.menuText());
+				}else if(Content.equals("3")){
+					message = MessageUtil.initNewsMessage(FromUserName, ToUserName);
 				}
 				
 			}else if(MsgType.equals(MessageUtil.MESSAGE_EVENT)){
